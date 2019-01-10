@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1"> 
+		<link rel="stylesheet" type="text/css" href="css/normalize.css" />
+		<link rel="stylesheet" type="text/css" href="css/demo.css" />
+		<link rel="stylesheet" type="text/css" href="css/component.css" />
+		<link rel="stylesheet" type="text/css" href="css/content.css" />
+		<script src="js/modernizr.custom.js"></script>
+	</head>
+	<body>
+		<div class="container">
+			<header class="codrops-header">
+				<h1>Welcome to join us</h1>
+				<p>We know that you are bothering how to hand in homework</p>
+				<p>I think I can help you.</p>
+				<img src="img/logo.png" style="width: 300px;height: 100px;border-radius: 10px">
+				<p style="color: red">测试时期的用户已经全被清空，请按照要求重新注册！！！</p>
+			</header>
+			<section>
+				<p>Click the button below to get started:</p>
+				<div class="mockup-content">
+					<div class="morph-button morph-button-modal morph-button-modal-2 morph-button-fixed">
+						<button type="button">Login</button>
+						<div class="morph-content">
+							<div>
+								<div class="content-style-form content-style-form-1">
+									<span class="icon icon-close">Close the dialog</span>
+									<h2>Login</h2>
+									<form>
+										<p class="login-msg"></p>
+										<p><label>Email</label><input class="login-username" type="text" name="username" /></p>
+										<p><label>Password</label><input class="login-password" type="password" name="password"/></p>
+										<p><button class="login">登录</button></p>
+									</form>
+								</div>
+
+								<script>
+									$(".login-username").focus(function () {
+										$(".login-msg").html("")
+									})
+
+									$(".login-password").focus(function () {
+										$(".login-msg").html("")
+									})
+									$(".login").click(function (e) {
+										var isEmail = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+										var username=$(".login-username").val();
+										var password=$(".login-password").val();
+										//校验用户名
+										if (!isEmail.test(username)){
+											$(".login-msg").html("用户名必须是邮箱")
+											return;
+										}
+										//校验密码并加密
+										if (password.length<6||password.length>16){
+											$(".login-msg").html("密码长度不符合要求");
+											return;
+										}
+										$.ajax({
+											"type" : 'post',
+											"url" : "login",
+											"dataType" : "json",
+											"data" : {
+												"username":username,
+												"password":password
+											},
+											"success" : function(resp) {
+												console.log(resp)
+												if (resp["code"]==0){
+													window.location.href="/manage"
+												} else{
+													$(".login-msg").html("登入失败,请检查用户名或密码");
+												}
+											},
+											"error":function(emsg){
+												$(".login-msg").html("登入失败,请检查用户名或密码");
+											}
+										});
+									});
+								</script>
+							</div>
+						</div>
+					</div><!-- morph-button -->
+					<strong class="joiner">or</strong>
+					<div class="morph-button morph-button-modal morph-button-modal-3 morph-button-fixed">
+						<button type="button">Signup</button>
+						<div class="morph-content">
+							<div>
+								<div class="content-style-form content-style-form-2">
+									<span class="icon icon-close">Close the dialog</span>
+									<h2>Sign Up</h2>
+
+									<form class="form" action="/register" method="post">
+										<p class="register-msg"></p>
+										<p><label>Email</label><input class="register-username" type="text" name="username"/></p>
+										<p><label>Password</label><input class="register-password1" type="password" name="password"/></p>
+										<p><label>Repeat Password</label><input class="register-password2" type="password" name="repeatPassword"/></p>
+										<p><button class="register">注册</button></p>
+									</form>
+
+									<script>
+										$(".register-username").focus(function () {
+											$(".register-msg").html("")
+										})
+
+										$(".register-password1").focus(function () {
+											$(".register-msg").html("")
+										})
+
+										$(".register-password2").focus(function () {
+											$(".register-msg").html("")
+										})
+
+										$(".register").click(function (e) {
+											var isEmail = /^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/;
+											var username=$(".register-username").val();
+											var password1=$(".register-password1").val();
+											var password2=$(".register-password2").val();
+											//校验用户名
+											if (!isEmail.test(username)){
+												$(".register-msg").html("用户名必须是邮箱")
+												return;
+											}
+											if (password1!=password2){
+												$(".register-msg").html("两次输入的密码不一样");
+												return;
+											}
+											//校验密码并加密
+											if (password1.length<6||password1.length>16){
+												$(".register-msg").html("密码长度不符合要求（6到16位）");
+												return;
+											}
+											$.ajax({
+												"type" : 'post',
+												"url" : "register",
+												"dataType" : "json",
+												"data" : {
+													"username":username,
+													"password":password1
+												},
+												"success" : function(resp) {
+													console.log(resp)
+													if (resp["code"]==0){
+														alert("注册成功!")
+														window.location.href="/"
+													} else{
+														$(".register-msg").html("注册失败,请检查用户名或密码");
+													}
+												},
+												"error":function(emsg){
+													$(".register-msg").html("注册失败,请检查网络");
+												}
+											});
+										});
+
+									</script>
+								</div>
+							</div>
+						</div>
+					</div><!-- morph-button -->
+					<p>Your behavior has nothing to do with this website</p>
+				</div><!-- /form-mockup -->
+			</section>
+		</div><!-- /container -->
+		<script src="js/classie.js"></script>
+		<script src="js/uiMorphingButton_fixed.js"></script>
+		<script>
+			(function() {
+				var docElem = window.document.documentElement, didScroll, scrollPosition;
+				function noScrollFn() {
+					window.scrollTo( scrollPosition ? scrollPosition.x : 0, scrollPosition ? scrollPosition.y : 0 );
+				}
+
+				function noScroll() {
+					window.removeEventListener( 'scroll', scrollHandler );
+					window.addEventListener( 'scroll', noScrollFn );
+				}
+
+				function scrollFn() {
+					window.addEventListener( 'scroll', scrollHandler );
+				}
+
+				function canScroll() {
+					window.removeEventListener( 'scroll', noScrollFn );
+					scrollFn();
+				}
+
+				function scrollHandler() {
+					if( !didScroll ) {
+						didScroll = true;
+						setTimeout( function() { scrollPage(); }, 60 );
+					}
+				};
+
+				function scrollPage() {
+					scrollPosition = { x : window.pageXOffset || docElem.scrollLeft, y : window.pageYOffset || docElem.scrollTop };
+					didScroll = false;
+				};
+
+				scrollFn();
+
+				[].slice.call( document.querySelectorAll( '.morph-button' ) ).forEach( function( bttn ) {
+					new UIMorphingButton( bttn, {
+						closeEl : '.icon-close',
+						onBeforeOpen : function() {
+							// don't allow to scroll
+							noScroll();
+						},
+						onAfterOpen : function() {
+							// can scroll again
+							canScroll();
+						},
+						onBeforeClose : function() {
+							// don't allow to scroll
+							noScroll();
+						},
+						onAfterClose : function() {
+							// can scroll again
+							canScroll();
+						}
+					} );
+				} );
+				[].slice.call( document.querySelectorAll( 'form button' ) ).forEach( function( bttn ) { 
+					bttn.addEventListener( 'click', function( ev ) { ev.preventDefault(); } );
+				} );
+			})();
+		</script>
+	</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script th:src="@{/webjars/bootstrap/3.3.1/js/bootstrap.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/3.3.1/css/bootstrap.min.css}"/>
+    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+
+    <link href="css/iconfont.css" rel="stylesheet" type="text/css"/>
+    <link href="css/fileUpload.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="js/fileUpload.js"></script>
+
+    <link rel="stylesheet" href="css/manage.css" media="screen" type="text/css"/>
+    <link rel="stylesheet" href="css/paging.css">
+</head>
+    <body style="padding: 30px;">
+    <div class="left">
+        <a class="list-title">功能</a>
+
+        <ul id="accordion" class="accordion">
+            <li class="function" id="1">
+                <div class="link">
+                    <i class="fa fa-leaf"></i>公告说明
+                </div>
+            </li>
+            <li class="function" id="2">
+                <div class="link">
+                    <i class="fa fa-shopping-cart"></i>文件上传
+                </div>
+            </li>
+
+            <li class="function" id="3">
+                <div class="link">
+                    <i class="fa fa-shopping-cart"></i>我的文件
+                </div>
+            </li>
+
+            <li class="function" id="4">
+                <div class="link">
+                    <i class="fa fa-pencil-square-o"></i>共享文件
+                </div>
+            </li>
+
+            <li class="function" id="5">
+                <div class="link">
+                    <i class="fa fa-pencil-square-o"></i>关于我们
+                </div>
+            </li>
+        </ul>
+        <script src='js/leftnav.js'></script>
+    </div>
+
+    <div class="right">
+        <!-- 用户信息 -->
+        <div class="page1">
+
+            <h2>使用说明</h2>
+            <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">1. 使用word上传不保证虚拟机的word版本兼容</p>
+
+            <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">2. 本网站完全免费，你可以向你的朋友推荐</p>
+
+            <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">3. 本网站不会保存你的文件，每次取出后文件将会及时删除，请不必担心文件隐私问题</p>
+
+            <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">4. 不要上传黄色，暴力，政治敏感的文件</p>
+
+
+            <h3 onclick="getInfo()">点击查看网站信息</h3>
+            <h4 class="user-count"></h4>
+            <h4 class="file-count"></h4>
+            <script>
+                function getInfo(){
+                    $.ajax({
+                        "type" : 'get',
+                        "url" : "/getWebCount",
+                        "dataType" : "json",
+                        "data" : {
+
+                        },
+                        "success" : function(resp) {
+                            $(".user-count").html();
+                            $(".file-count").html();
+                            if (resp["code"]==0){
+                                var  userCount=resp["data"]["userCount"];
+                                var fileCount=resp["data"]["fileCount"];
+                                $(".user-count").html("当前注册用户:"+userCount);
+                                $(".file-count").html("共帮助传递 "+fileCount+" 个文件")
+                            } else{
+                                $(".user-count").html("未知");
+                            }
+                        },
+                        "error":function(emsg){
+                            $(".user-count").html("未知");
+                        }
+                    });
+                }
+            </script>
+
+        </div>
+
+        <!-- 文件上传-->
+        <div class="page2" hidden="hidden">
+            <div id="fileUploadContent" class="fileUploadContent"></div>
+        </div>
+
+        <!-- 我的文件 -->
+        <div class="page3" hidden="hidden">
+            <div class="filelist">
+
+                <table  class="table" style="width: 800px">
+                    <caption><h3 style="color: #ffaa21">我的文件</h3></caption>
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>文件名</th>
+                            <th>取出</th>
+                            <th>共享</th>
+                            <th>删除</th>
+                        </tr>
+                    </thead>
+                    <tbody class="tbody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagger-box pagger" id="box" style="position: fixed"></div>
+            <script src="js/paging.js"></script>
+            <script>
+                <!--js先获取数据-->
+
+                var totalPages,totalCount;
+
+                $.ajax({
+                    "type" : 'post',
+                    "url" : "getFileCount",
+                    "dataType" : "json",
+                    "data" : {},
+                    "success" : function(resp) {
+                        totalCount=resp[0]
+                        totalPages=resp[1]
+
+                        $('#box').paging({
+                            initPageNo: 1, // 初始页码
+                            totalPages: totalPages, //总页数
+                            totalCount: '合计' + totalCount, // 条目总数
+                            slideSpeed: 600, // 缓动速度。单位毫秒
+                            jump: true, //是否支持跳转
+                            callback: function(page) { // 回调函数
+                                getFileList(page)
+                                console.log(page);
+                            }
+                        })
+
+                    },
+                    "error":function(emsg){
+                        //返回失败信息-----》emsg
+                    }
+                });
+
+                function getFileList(page) {
+                    $.ajax({
+                        "type" : 'post',
+                        "url" : "getfilelist",
+                        "dataType" : "json",
+                        "data" : {
+                            "page":page
+                        },
+                        "success" : function(resp) {
+                            var filename;
+                            var filepath;
+                            var time;
+                            var id;
+                            var fileid;
+                            var h="";
+                            for (var i=0;i<resp.length;i++){
+                                id=resp[i]["id"]
+                                fileid=resp[i]["fileid"]
+                                filename=resp[i]["filename"]
+                                filepath=resp[i]["filepath"]
+                                time=resp[i]["time"]
+
+                                h+="<tr id="+fileid+">\n" +
+                                    "                            <td>"+id+"</td>\n" +
+                                    "                            <td>"+filename+"</td>\n" +
+                                    "                            <td><a href='"+filepath+"' download='"+filename+"'>取出</a></td>\n" +
+                                    "                            <th><a >共享</a></th>\n" +
+                                    "                            <th><a onclick=deletefile("+fileid+")>删除</a></th>\n" +
+                                    "                        </tr>"
+
+                            }
+                            $(".tbody").html(h);
+                        },
+                        "error":function(emsg){
+                            //返回失败信息-----》emsg
+                        }
+                    });
+                }
+
+            </script>
+        </div>
+
+        <!-- 共享文件 -->
+        <div class="page4" hidden="hidden">
+            <p>敬请期待</p>
+        </div>
+
+        <!-- 关于我们 -->
+        <div class="page5" hidden="hidden">
+            <h3>关于我们</h3>
+            <div>
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">1. 这只是一个文件上传下载的网站，所有其他用途与本网站无关</p>
+
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">2. 该网站花费了大概整整一天完成，其中必然含有一些小bug需要修复，请专业人士不要利用漏洞攻击服务器</p>
+
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">3. 由于硬件的限制和开发周期的限制，我们实在无法保证提供一个流畅稳定的服务，请不要怪我们</p>
+
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">4. 编程是一件很爽快的事情，在一个卡顿的环境下编程是一件很糟糕的事情</p>
+
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">5. 当有人强迫你做很糟糕的事情的时候，不论他的身份是什么，都要相信他主观或客观上对你有敌意</p>
+
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">6. 尽管依然有人称之为校园特色,但请务必相信自己的判断力</p>
+
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">7. 除了你没有人会在意你的时间，请不要白白的浪费自己的时间</p>
+
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">8. 不如尝试按照自己的方式coding，那样也许变得更加好，循规蹈矩，真的有所收获么</p>
+
+                <p style="margin-top: 10px;margin-bottom:10px;color: #ff653c">9. 请遵守缄默法则！</p>
+            </div>
+        </div>
+    </div>
+
+
+    </body>
+</html>
+<script type="text/javascript">
+    $("#fileUploadContent").initUpload({
+        "uploadUrl":"/upload",//上传文件信息地址
+        "size":2048,//文件大小限制，单位kb,默认不限制
+        "maxFileNumber":10,//文件个数限制，为整数
+        //"filelSavePath":"",//文件上传地址，后台设置的根目录
+        "beforeUpload":beforeUploadFun,//在上传前执行的函数
+        //"onUpload":onUploadFun，//在上传后执行的函数
+        //autoCommit:true,//文件是否自动上传
+        // "fileType":['png','jpg','docx','doc']//文件类型限制，默认不限制，注意写的是文件后缀
+    });
+    function beforeUploadFun(opt){
+        opt.otherData =[{"name":"name","value":"zxm"}];
+    }
+    function onUploadFun(opt,data){
+        alert(data);
+        uploadTools.uploadError(opt);//显示上传错误
+        uploadTools.uploadSuccess(opt);//显示上传成功
+    }
+
+    function testUpload(){
+    	var opt = uploadTools.getOpt("fileUploadContent");
+    	uploadEvent.uploadFileEvent(opt);
+    }
+    function deletefile(fileid) {
+        $.ajax({
+            "type" : 'get',
+            "url" : "deleteFile",
+            "dataType" : "json",
+            "data" : {
+                "id":fileid
+            },
+            "success" : function(resp) {
+            },
+            "error":function(emsg){
+            }
+        });
+        var e="#"+fileid
+        $(e).hide()
+    }
+</script>
